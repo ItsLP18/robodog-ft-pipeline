@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install linters
+        run: |
+          pip install flake8 mypy pyserial numpy
+
+      - name: Flake8
+        run: |
+          flake8 src/ scripts/ \
+            --max-line-length=100 \
+            --extend-ignore=E203,W503 \
+            --statistics
+
+      - name: Mypy (protocol module)
+        run: |
+          mypy src/ft_sensor_pipeline/robotous_protocol.py \
+            --ignore-missing-imports \
+            --no-strict-optional
+
+  build:
+    name: ROS2 Build
+    runs-on: ubuntu-24.04
+    container:
+      image: osrf/ros:jazzy-desktop
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get install -y python3-pip
+          pip install pyserial numpy matplotlib pyyaml --break-system-packages
+          rosdep update
+          rosdep install --from-paths . --ignore-src -y
+
+      - name: Build
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          mkdir -p /tmp/ws/src
+          ln -s $GITHUB_WORKSPACE /tmp/ws/src/ft_sensor_pipeline
+          cd /tmp/ws
+          colcon build --packages-select ft_sensor_pipeline
+        shell: bash
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyserial numpy pytest
+
+      - name: Run tests
+        run: python3 -m pytest test/ -v --tb=short
