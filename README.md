@@ -35,7 +35,6 @@ This repository contains the **sensor data pipeline** — the foundational data 
 Human grips handlebar → F/T sensor measures forces → Pipeline processes data → Robot adapts
 ```
 
-> **Part of the CITRIS-funded research**: *Assistive Robotic Dog Co-Walking to Improve Mobility in Older Adults*
 
 ---
 
@@ -405,8 +404,8 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 <div align="center">
 
-**Built with** 🔧 **at UC Merced** · CITRIS Research
+**Built with** 🔧 **ROS2 Jazzy + Python 3.12**
 
-*Empowering older adults through assistive robotics*
+
 
 </div>
