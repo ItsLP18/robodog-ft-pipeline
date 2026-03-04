@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🐕 RoboDog F/T Sensor Pipeline
+# ⚡ Robotous F/T Sensor Pipeline
 
-### Real-Time 6-Axis Force-Torque Sensing for Assistive Robotic Dog Co-Walking
+### Real-Time 6-Axis Force-Torque Data Acquisition & Processing in ROS2
 
 [![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue?style=flat-square&logo=ros)](https://docs.ros.org/en/jazzy/)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04-E95420?style=flat-square&logo=ubuntu&logoColor=white)](https://ubuntu.com/)
@@ -13,11 +13,11 @@
 
 <br/>
 
-<img src="docs/img/pipeline_banner.svg" alt="RoboDog F/T Pipeline" width="720"/>
+<img src="docs/img/pipeline_banner.svg" alt="F/T Sensor Pipeline" width="720"/>
 
 <br/>
 
-**A production-grade ROS2 pipeline for collecting, processing, and analyzing force-torque interaction data between older adults and an assistive robotic dog.**
+**A production-grade ROS2 pipeline for real-time acquisition, filtering, visualization, and logging of 6-axis force-torque sensor data from Robotous RFT Series sensors.**
 
 [Getting Started](#-quick-start) · [Architecture](#-architecture) · [Hardware Setup](#-hardware) · [API Reference](#-api-reference) · [Contributing](#-contributing)
 
@@ -27,14 +27,13 @@
 
 ## 📋 About
 
-As people age, walking difficulties reduce independence and increase fall risk. This project develops an **assistive robotic dog system** that walks alongside older adults, providing physical support through an instrumented handlebar. The robot dog's harness features a **6-axis force-torque sensor** that captures real-time interaction forces, enabling adaptive gait support.
-
-This repository contains the **sensor data pipeline** — the foundational data layer that powers the entire system:
+This repository provides a complete, ready-to-deploy ROS2 pipeline for the **Robotous RFT Series** 6-axis force-torque sensors. It handles everything from low-level binary UART communication to real-time visualization and session logging.
 
 ```
-Human grips handlebar → F/T sensor measures forces → Pipeline processes data → Robot adapts
+Sensor → UART Protocol → ROS2 Driver → Filter + Analysis → Visualization + Logging
 ```
 
+The protocol implementation is built from scratch against the official **Robotous RFT-Series Manual v1.8**, using signed 16-bit integer decoding with model-specific dividers — not the simplified float approach found in most generic F/T drivers.
 
 ---
 
@@ -45,11 +44,11 @@ Human grips handlebar → F/T sensor measures forces → Pipeline processes data
 | **200Hz Real-Time Streaming** | Full-rate data acquisition from the Robotous RFT40-SA01 sensor |
 | **Binary Protocol Implementation** | Complete UART protocol handler matching the official Robotous manual v1.8 |
 | **Butterworth Filtering** | Real-time 2nd-order low-pass filter with configurable cutoff frequency |
-| **Force/Torque Decomposition** | 6-axis separation with magnitude computation and grip event detection |
-| **Live Visualization** | 4-panel matplotlib dashboard: forces, torques, magnitudes, grip state |
-| **Session Logging** | Timestamped CSV + rosbag2 with participant/trial metadata |
+| **Force/Torque Decomposition** | 6-axis separation with magnitude computation and threshold detection |
+| **Live Visualization** | 4-panel matplotlib dashboard: forces, torques, magnitudes, threshold state |
+| **Session Logging** | Timestamped CSV + rosbag2 with session metadata |
 | **Bias Calibration** | Interactive calibration utility with automatic config file updates |
-| **Mock Sensor** | Simulated gait-pattern generator for development without hardware |
+| **Mock Sensor** | Simulated force-pattern generator for development without hardware |
 
 ---
 
@@ -64,7 +63,7 @@ Human grips handlebar → F/T sensor measures forces → Pipeline processes data
 │  │  ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌  │  raw   │  ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌  │                  │
 │  │  Robotous UART     │        │  Butterworth LPF    │                  │
 │  │  Protocol Handler  │        │  Magnitude Calc     │                  │
-│  │  200Hz Streaming   │        │  Grip Detection     │                  │
+│  │  200Hz Streaming   │        │  Threshold Detect   │                  │
 │  └───────────────────┘        └─────────┬──────────┘                   │
 │           ▲                             │                              │
 │           │                   ┌─────────┼──────────────┐               │
@@ -109,6 +108,12 @@ graph LR
 | **Weight** | 60g |
 | **Protocol** | Binary UART (SOP/EOP framing) |
 
+### Supported Models
+
+The protocol handler supports all RFT Series models with automatic divider selection:
+
+`RFT40-SA01` · `RFT44-SB01` · `RFT60-HA01` · `RFT64-SB01` · `RFT64-6A01` · `RFT80-6A01` · `RFT80-6A02`
+
 ### Wiring (USB Interface)
 
 ```
@@ -143,15 +148,15 @@ sudo usermod -a -G dialout $USER && newgrp dialout
 
 ```bash
 # Clone
-git clone https://github.com/<your-username>/robodog-ft-pipeline.git
-cd robodog-ft-pipeline
+git clone https://github.com/ItsLP18/robotous-ft-pipeline.git
+cd robotous-ft-pipeline
 
 # Create workspace and symlink
-mkdir -p ~/robodog_ws/src
-ln -s $(pwd) ~/robodog_ws/src/ft_sensor_pipeline
+mkdir -p ~/ft_sensor_ws/src
+ln -s $(pwd) ~/ft_sensor_ws/src/ft_sensor_pipeline
 
 # Build
-cd ~/robodog_ws
+cd ~/ft_sensor_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-select ft_sensor_pipeline
 source install/setup.bash
@@ -160,17 +165,16 @@ source install/setup.bash
 ### Run
 
 ```bash
-# 🧪 Test without hardware (mock sensor with simulated gait patterns)
+# 🧪 Test without hardware (mock sensor with simulated force patterns)
 ros2 launch ft_sensor_pipeline ft_pipeline_launch.py use_mock:=true
 
 # 🔬 Run with real sensor
 ros2 launch ft_sensor_pipeline ft_pipeline_launch.py
 
-# 📊 Record a participant trial
+# 📊 Record a data session
 ros2 launch ft_sensor_pipeline ft_pipeline_launch.py \
-    participant_id:=P001 \
+    participant_id:=S001 \
     trial_id:=T01 \
-    condition:=with_robot \
     record_bag:=true
 ```
 
@@ -189,7 +193,7 @@ python3 scripts/calibrate_bias.py \
 ## 📁 Project Structure
 
 ```
-robodog-ft-pipeline/
+robotous-ft-pipeline/
 ├── .github/
 │   ├── workflows/
 │   │   └── ci.yml                  # Lint + build verification
@@ -207,24 +211,23 @@ robodog-ft-pipeline/
 │   └── ft_pipeline_launch.py       # Main launch file
 ├── scripts/
 │   ├── ft_sensor_driver_node.py    # Sensor reader → /ft_sensor/raw
-│   ├── ft_data_processor_node.py   # Filter + magnitude + grip
+│   ├── ft_data_processor_node.py   # Filter + magnitude + threshold
 │   ├── ft_data_logger_node.py      # CSV + metadata logging
 │   ├── ft_visualizer_node.py       # Real-time matplotlib dashboard
-│   ├── ft_mock_sensor_node.py      # Gait-pattern simulator
+│   ├── ft_mock_sensor_node.py      # Force-pattern simulator
 │   └── calibrate_bias.py           # Bias calibration utility
 ├── src/
 │   └── ft_sensor_pipeline/
 │       ├── __init__.py
 │       └── robotous_protocol.py    # UART protocol handler
 ├── test/
-│   ├── test_protocol.py            # Protocol unit tests
-│   └── test_pipeline.py            # Integration tests
+│   └── test_protocol.py            # Protocol unit tests (33 tests)
 ├── CMakeLists.txt
 ├── package.xml
 ├── LICENSE
 ├── CHANGELOG.md
 ├── .gitignore
-└── README.md                       # You are here
+└── README.md
 ```
 
 ---
@@ -266,7 +269,7 @@ while True:
 sensor.set_bias(enable=True)    # Zero the sensor
 sensor.clear_bias()             # Remove bias
 
-# Configuration (must stop streaming first)
+# Configuration
 sensor.set_output_rate(200)     # Hz: 10,20,50,100,200,333
 sensor.set_filter(50)           # Cutoff Hz: 0(off),1..500
 
@@ -281,7 +284,7 @@ sensor.disconnect()
 | `/ft_sensor/filtered` | `geometry_msgs/WrenchStamped` | 200 Hz | Butterworth-filtered data |
 | `/ft_sensor/force_magnitude` | `std_msgs/Float64` | 200 Hz | \|F\| = √(Fx²+Fy²+Fz²) |
 | `/ft_sensor/torque_magnitude` | `std_msgs/Float64` | 200 Hz | \|T\| = √(Tx²+Ty²+Tz²) |
-| `/ft_sensor/grip_detected` | `std_msgs/Bool` | 200 Hz | Force > threshold |
+| `/ft_sensor/grip_detected` | `std_msgs/Bool` | 200 Hz | Force exceeds threshold |
 | `/ft_sensor/status` | `std_msgs/String` | 1 Hz | JSON diagnostics |
 
 ### Launch Arguments
@@ -293,7 +296,7 @@ sensor.disconnect()
 | `visualize` | `true` | `true` / `false` |
 | `participant_id` | `P000` | Any string |
 | `trial_id` | `T00` | Any string |
-| `condition` | `with_robot` | `with_robot` / `without_robot` |
+| `condition` | `default` | Any string |
 
 ---
 
@@ -301,7 +304,7 @@ sensor.disconnect()
 
 ### CSV Format
 
-Output: `~/robodog_data/csv/ft_session_{participant}_{trial}_{timestamp}.csv`
+Output: `~/ft_sensor_data/csv/ft_session_{id}_{trial}_{timestamp}.csv`
 
 ```csv
 timestamp_sec,timestamp_nsec,raw_fx,raw_fy,raw_fz,raw_tx,raw_ty,raw_tz,filt_fx,filt_fy,filt_fz,filt_tx,filt_ty,filt_tz,force_magnitude,grip_detected,participant_id,trial_id,condition
@@ -312,10 +315,10 @@ timestamp_sec,timestamp_nsec,raw_fx,raw_fy,raw_fz,raw_tx,raw_ty,raw_tz,filt_fx,f
 
 ```bash
 # Replay a recorded session
-ros2 bag play ~/robodog_data/rosbags/session_20260302_174734/
+ros2 bag play ~/ft_sensor_data/rosbags/session_20260302_174734/
 
 # Inspect bag contents
-ros2 bag info ~/robodog_data/rosbags/session_20260302_174734/
+ros2 bag info ~/ft_sensor_data/rosbags/session_20260302_174734/
 ```
 
 ---
@@ -335,14 +338,13 @@ ft_sensor_driver:
 ft_data_processor:
   ros__parameters:
     filter_enabled: true
-    filter_cutoff_hz: 10.0        # Gait frequency ~1-3Hz
+    filter_cutoff_hz: 10.0
     force_magnitude_threshold_n: 2.0
 
 ft_data_logger:
   ros__parameters:
     csv_enabled: true
-    csv_output_dir: "~/robodog_data/csv"
-    participant_id: "P000"
+    csv_output_dir: "~/ft_sensor_data/csv"
 ```
 
 ---
@@ -350,7 +352,7 @@ ft_data_logger:
 ## 🧪 Testing
 
 ```bash
-# Run unit tests
+# Run unit tests (33 tests across 5 test classes)
 python3 -m pytest test/ -v
 
 # Verify sensor connection
@@ -370,23 +372,28 @@ ros2 topic hz /ft_sensor/raw
 
 ## 🗺 Roadmap
 
-- [x] **Phase 1**: Sensor protocol & ROS2 pipeline
-- [x] **Phase 2**: Real-time visualization & data logging
-- [x] **Phase 3**: Bias calibration & mock sensor
-- [ ] **Phase 4**: Isaac Sim — Unitree B1 walking autonomously
-- [ ] **Phase 5**: Isaac Sim — Harness + F/T sensor + human co-walking
-- [ ] **Phase 6**: Real Unitree B1 deployment
-- [ ] **Phase 7**: ML gait quality estimation (Aim 3)
-- [ ] **Phase 8**: Adaptive robot positioning control
+- [x] Complete UART protocol handler (verified against manual v1.8 + real hardware)
+- [x] Real-time 200Hz streaming with Butterworth filtering
+- [x] Live 4-panel visualization dashboard
+- [x] CSV + rosbag2 session logging with metadata
+- [x] Bias calibration utility
+- [x] Mock sensor for hardware-free development
+- [x] 33 unit tests + CI/CD with GitHub Actions
+- [ ] Multi-sensor support (daisy-chain / multiple USB)
+- [ ] ROS2 lifecycle node integration
+- [ ] Web-based visualization (Foxglove bridge)
 
 ---
 
-## 📖 References
+## 📖 Protocol Documentation
 
-1. Structured exercise programs reduce mobility disability by 18% in older adults
-2. Light stabilizing forces (~5N) improve gait stability
-3. Robotous RFT Series Manual v1.8
-4. ROS2 Jazzy Documentation
+Full Robotous UART protocol reference is available in [`docs/PROTOCOL.md`](docs/PROTOCOL.md), covering:
+
+- Frame structure (SOP/EOP, checksums)
+- Complete command set (18 commands)
+- Data conversion formulas & model-specific dividers
+- Baud rate, output rate, and filter configuration tables
+- Overload status byte decoding
 
 ---
 
@@ -404,8 +411,6 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 <div align="center">
 
-**Built with** 🔧 **ROS2 Jazzy + Python 3.12**
-
-
+**Built with** 🔧 **ROS2 Jazzy · Python 3.12 · Robotous RFT Series**
 
 </div>

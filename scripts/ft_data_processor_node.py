@@ -3,7 +3,7 @@
 FT Data Processor Node
 
 Subscribes to raw F/T sensor data, applies filtering, and computes
-derived metrics for gait analysis.
+derived metrics for force analysis.
 
 Topics Subscribed:
     /ft_sensor/raw (geometry_msgs/WrenchStamped)
@@ -12,7 +12,7 @@ Topics Published:
     /ft_sensor/filtered (geometry_msgs/WrenchStamped) - Filtered F/T data
     /ft_sensor/force_magnitude (std_msgs/Float64) - Force vector magnitude
     /ft_sensor/torque_magnitude (std_msgs/Float64) - Torque vector magnitude
-    /ft_sensor/grip_detected (std_msgs/Bool) - Whether user is gripping
+    /ft_sensor/grip_detected (std_msgs/Bool) - Force exceeds threshold
 
 Parameters:
     See config/ft_sensor_params.yaml under ft_data_processor
@@ -95,7 +95,7 @@ class ButterworthFilter:
 
 
 class FTDataProcessorNode(Node):
-    """Processes raw F/T data: filtering, magnitude, grip detection."""
+    """Processes raw F/T data: filtering, magnitude, threshold detection."""
 
     def __init__(self):
         super().__init__('ft_data_processor')
@@ -206,7 +206,7 @@ class FTDataProcessorNode(Node):
         torque_msg.data = avg_torque
         self.torque_mag_pub.publish(torque_msg)
 
-        # Grip detection
+        # Threshold detection
         grip_msg = Bool()
         grip_msg.data = (avg_force > self.force_threshold or
                          avg_torque > self.torque_threshold)

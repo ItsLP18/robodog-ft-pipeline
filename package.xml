@@ -5,10 +5,10 @@
   <version>0.1.0</version>
   <description>
     ROS2 pipeline for Robotous 100N 6-axis Force-Torque sensor.
-    Part of the Assistive Robotic Dog Co-Walking project (CITRIS).
-    Collects, processes, visualizes, and logs F/T data for gait analysis.
+    ROS2 pipeline for Robotous RFT Series 6-axis force-torque sensors.
+    Handles real-time data acquisition, filtering, visualization, and logging.
   </description>
-  <maintainer email="your_email@ucmerced.edu">RoboDog Team</maintainer>
+  <maintainer email="dev@ft-pipeline.io">F/T Pipeline Dev</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

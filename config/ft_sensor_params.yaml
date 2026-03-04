@@ -1,6 +1,6 @@
 # =============================================================================
 # Robotous 100N 2.5Nm 6-Axis Force-Torque Sensor Configuration
-# Project: Assistive Robotic Dog Co-Walking (CITRIS)
+# Robotous RFT Series F/T Sensor Pipeline Configuration
 # =============================================================================
 
 ft_sensor_driver:
@@ -49,12 +49,12 @@ ft_data_processor:
     # --- Low-pass filter (Butterworth) ---
     filter_enabled: true
     filter_order: 2                     # 2nd-order Butterworth
-    filter_cutoff_hz: 10.0              # Cutoff frequency (adjust for gait ~1-3Hz)
+    filter_cutoff_hz: 10.0              # Cutoff frequency in Hz
     sample_rate_hz: 200.0               # Must match driver publish rate (200Hz default)
 
-    # --- Thresholds for grip detection ---
+    # --- Thresholds for force detection ---
     # Based on literature: light stabilizing force ~5N (ref: proposal [3])
-    force_magnitude_threshold_n: 2.0    # Min force to consider "gripping"
+    force_magnitude_threshold_n: 2.0    # Min force to trigger threshold
     torque_magnitude_threshold_nm: 0.1  # Min torque to consider "twisting"
 
     # --- Moving average window ---
@@ -64,12 +64,12 @@ ft_data_logger:
   ros__parameters:
     # --- CSV Logging ---
     csv_enabled: true
-    csv_output_dir: "~/robodog_data/csv"
+    csv_output_dir: "~/ft_sensor_data/csv"
     csv_prefix: "ft_session"            # Files: ft_session_YYYYMMDD_HHMMSS.csv
 
     # --- Rosbag Logging ---
     rosbag_enabled: true
-    rosbag_output_dir: "~/robodog_data/rosbags"
+    rosbag_output_dir: "~/ft_sensor_data/rosbags"
     
     # --- Session metadata ---
     participant_id: "P000"              # Set per participant

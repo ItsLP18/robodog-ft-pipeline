@@ -3,7 +3,7 @@
 FT Visualizer Node
 
 Real-time visualization of force-torque sensor data using matplotlib.
-Displays 6-axis forces/torques, magnitudes, and grip state.
+Displays 6-axis forces/torques, magnitudes, and threshold state.
 
 Topics Subscribed:
     /ft_sensor/raw (geometry_msgs/WrenchStamped)
@@ -153,7 +153,7 @@ class FTVisualizerNode(Node):
         """Create the matplotlib figure with subplots."""
         self.fig, self.axes = plt.subplots(4, 1, figsize=(14, 10), sharex=True)
         self.fig.suptitle(
-            'Robotous F/T Sensor — RoboDog Co-Walking',
+            'Robotous F/T Sensor — Real-Time Dashboard',
             fontsize=14, fontweight='bold'
         )
 
@@ -213,16 +213,16 @@ class FTVisualizerNode(Node):
         ax.set_ylim(0, 60)
         ax.grid(True, alpha=0.3)
 
-        # --- Subplot 3: Grip Detection ---
+        # --- Subplot 3: Threshold Detection ---
         ax = self.axes[3]
-        ax.set_ylabel('Grip')
+        ax.set_ylabel('State')
         ax.set_xlabel('Time (s)')
-        ax.set_title('Grip Detection', fontsize=10)
+        ax.set_title('Force Threshold Detection', fontsize=10)
         self.line_grip, = ax.plot([], [], color='#1abc9c', linewidth=2)
         ax.fill_between([], [], alpha=0.3, color='#1abc9c')
         ax.set_ylim(-0.1, 1.1)
         ax.set_yticks([0, 1])
-        ax.set_yticklabels(['No Grip', 'Gripping'])
+        ax.set_yticklabels(['Below', 'Above'])
         ax.grid(True, alpha=0.3)
 
         plt.tight_layout()
@@ -277,7 +277,7 @@ class FTVisualizerNode(Node):
                 self.line_torque_mag.set_data(t, tm)
                 updated.append(self.line_torque_mag)
 
-            # --- Grip ---
+            # --- Threshold ---
             if len(self.grip_buf) >= n:
                 g = list(self.grip_buf)[-n:]
                 self.line_grip.set_data(t, g)

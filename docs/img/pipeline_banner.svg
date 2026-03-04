@@ -50,12 +50,12 @@
 
   <!-- Title -->
   <text x="170" y="95" fill="white" font-size="36" font-family="'SF Mono', 'Fira Code', 'JetBrains Mono', monospace" font-weight="700" letter-spacing="-1">
-    RoboDog F/T Pipeline
+    Robotous F/T Pipeline
   </text>
 
   <!-- Subtitle -->
   <text x="170" y="125" fill="#94a3b8" font-size="14" font-family="'SF Mono', 'Fira Code', monospace">
-    Real-time 6-axis force-torque sensing for assistive robot co-walking
+    Real-time 6-axis force-torque data acquisition and processing in ROS2
   </text>
 
   <!-- Tech badges -->

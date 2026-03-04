@@ -3,11 +3,11 @@
 FT Mock Sensor Node
 
 Simulates Robotous F/T sensor data for testing the pipeline WITHOUT hardware.
-Generates realistic gait-like force patterns for development and debugging.
+Generates realistic periodic force patterns for development and debugging.
 
 Simulated patterns:
-    - Sinusoidal gait forces (~1Hz walking cadence)
-    - Periodic grip force variations
+    - Sinusoidal force oscillations (configurable frequency)
+    - Periodic force spike events
     - Gaussian noise to simulate real sensor behavior
 
 Usage:
@@ -27,7 +27,7 @@ from geometry_msgs.msg import WrenchStamped
 
 
 class FTMockSensorNode(Node):
-    """Publishes simulated F/T data that mimics co-walking gait patterns."""
+    """Publishes simulated F/T data with realistic periodic force patterns."""
 
     def __init__(self):
         super().__init__('ft_mock_sensor')
@@ -35,12 +35,12 @@ class FTMockSensorNode(Node):
         self.declare_parameter('publish_rate_hz', 100.0)
         self.declare_parameter('frame_id', 'ft_sensor_link')
         self.declare_parameter('noise_level', 0.5)
-        self.declare_parameter('gait_frequency_hz', 1.0)  # Walking ~1Hz
+        self.declare_parameter('oscillation_frequency_hz', 1.0)  # Base oscillation freq
 
         rate = self.get_parameter('publish_rate_hz').value
         self.frame_id = self.get_parameter('frame_id').value
         self.noise = self.get_parameter('noise_level').value
-        self.gait_freq = self.get_parameter('gait_frequency_hz').value
+        self.osc_freq = self.get_parameter('oscillation_frequency_hz').value
 
         sensor_qos = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -58,34 +58,33 @@ class FTMockSensorNode(Node):
 
         self.get_logger().info(
             f'Mock FT sensor started | Rate: {rate}Hz | '
-            f'Gait freq: {self.gait_freq}Hz | Noise: {self.noise}'
+            f'Oscillation freq: {self.osc_freq}Hz | Noise: {self.noise}'
         )
 
     def _publish(self):
         """Generate and publish simulated F/T data."""
         self.t += self.dt
-        w = 2.0 * math.pi * self.gait_freq
+        w = 2.0 * math.pi * self.osc_freq
 
-        # --- Simulate gait forces ---
-        # During walking, the handlebar sees:
-        # - Fx (forward/backward): oscillates with gait, ~5-15N
+        # --- Simulate periodic forces ---
+        # Oscillating force patterns with configurable frequency:
+        # - Fx (primary axis): oscillates ~5-15N
         # - Fy (lateral): smaller oscillation, ~2-5N
-        # - Fz (vertical/down): weight support, ~8-20N with gait modulation
-        # These approximate an older adult gripping a handlebar while walking
+        # - Fz (vertical): baseline offset with modulation
 
-        # Gait phase modulation
+        # Phase modulation
         phase = w * self.t
         stride_phase = math.sin(phase)
         stance_phase = math.cos(phase)
 
-        # Simulate occasional increase in grip (e.g., loss of balance)
+        # Simulate periodic force spikes
         balance_event = 3.0 * math.exp(-((self.t % 8.0) - 4.0)**2 / 0.3)
 
         fx = 8.0 * stride_phase + balance_event + self._noise()
         fy = 3.0 * math.sin(phase * 2.0) + self._noise()  # 2x frequency (bilateral)
         fz = -12.0 + 5.0 * stance_phase + balance_event * 1.5 + self._noise()
 
-        # Torques (smaller, from wrist rotation during gait)
+        # Torques (smaller amplitude oscillations)
         tx = 0.3 * stride_phase + self._noise() * 0.1
         ty = 0.2 * math.cos(phase + 0.5) + self._noise() * 0.1
         tz = 0.1 * math.sin(phase * 0.5) + self._noise() * 0.05

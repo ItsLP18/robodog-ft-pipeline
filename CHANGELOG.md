@@ -13,11 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ROS2 Jazzy driver node with 200Hz real-time streaming
 - 2nd-order Butterworth low-pass filter (configurable cutoff)
 - Force/torque magnitude computation
-- Grip detection with configurable force threshold
+- Force threshold detection with configurable threshold
 - 4-panel real-time matplotlib visualization dashboard
 - CSV session logger with participant/trial metadata
 - rosbag2 recording integration
-- Mock sensor node with simulated gait patterns for offline development
+- Mock sensor node with simulated force patterns for offline development
 - Interactive bias calibration utility
 - Full launch system with configurable parameters
 

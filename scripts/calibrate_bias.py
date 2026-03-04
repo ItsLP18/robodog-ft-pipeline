@@ -26,7 +26,7 @@ def calibrate(port: str, baud: int, num_samples: int, config_path: str = None):
     """Collect samples and compute bias."""
     print("=" * 60)
     print("  Robotous F/T Sensor Bias Calibration")
-    print("  Project: RoboDog Co-Walking")
+    print("  Project: Robotous F/T Sensor Pipeline")
     print("=" * 60)
     print()
     print("⚠️  IMPORTANT: Remove all loads from the sensor!")
@@ -88,7 +88,7 @@ def calibrate(port: str, baud: int, num_samples: int, config_path: str = None):
 
     print()
     print("Noise levels (std dev) should be small relative to expected signals.")
-    print("For gait analysis, expect grip forces of 5-50N.")
+    print("For typical applications, expect applied forces of 5-50N.")
     print()
 
     # Output YAML snippet

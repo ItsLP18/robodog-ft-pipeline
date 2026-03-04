@@ -1,18 +1,18 @@
-# Contributing to RoboDog F/T Pipeline
+# Contributing to Robotous F/T Sensor Pipeline
 
-Thanks for your interest in contributing! This project is part of ongoing research at UC Merced.
+Thanks for your interest in contributing!
 
 ## Development Setup
 
 ```bash
 # Clone and set up workspace
-git clone https://github.com/<username>/robodog-ft-pipeline.git
-cd robodog-ft-pipeline
+git clone https://github.com/ItsLP18/robotous-ft-pipeline.git
+cd robotous-ft-pipeline
 
-mkdir -p ~/robodog_ws/src
-ln -s $(pwd) ~/robodog_ws/src/ft_sensor_pipeline
+mkdir -p ~/ft_sensor_ws/src
+ln -s $(pwd) ~/ft_sensor_ws/src/ft_sensor_pipeline
 
-cd ~/robodog_ws
+cd ~/ft_sensor_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-select ft_sensor_pipeline
 source install/setup.bash

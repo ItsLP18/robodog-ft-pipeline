@@ -9,10 +9,10 @@ Topics Subscribed:
     /ft_sensor/raw (geometry_msgs/WrenchStamped)
     /ft_sensor/filtered (geometry_msgs/WrenchStamped)
     /ft_sensor/force_magnitude (std_msgs/Float64)
-    /ft_sensor/grip_detected (std_msgs/Bool)
+    /ft_sensor/grip_detected (std_msgs/Bool) - Force threshold state
 
 Output:
-    CSV files: ~/robodog_data/csv/ft_session_YYYYMMDD_HHMMSS.csv
+    CSV files: ~/ft_sensor_data/csv/ft_session_YYYYMMDD_HHMMSS.csv
     
 Parameters:
     See config/ft_sensor_params.yaml under ft_data_logger
@@ -38,10 +38,10 @@ class FTDataLoggerNode(Node):
 
         # --- Declare Parameters ---
         self.declare_parameter('csv_enabled', True)
-        self.declare_parameter('csv_output_dir', '~/robodog_data/csv')
+        self.declare_parameter('csv_output_dir', '~/ft_sensor_data/csv')
         self.declare_parameter('csv_prefix', 'ft_session')
         self.declare_parameter('rosbag_enabled', True)
-        self.declare_parameter('rosbag_output_dir', '~/robodog_data/rosbags')
+        self.declare_parameter('rosbag_output_dir', '~/ft_sensor_data/rosbags')
         self.declare_parameter('participant_id', 'P000')
         self.declare_parameter('trial_id', 'T00')
         self.declare_parameter('condition', 'with_robot')
@@ -141,7 +141,7 @@ class FTDataLoggerNode(Node):
         self._latest_force_mag = msg.data
 
     def _grip_callback(self, msg: Bool):
-        """Store latest grip detection."""
+        """Store latest threshold detection state."""
         self._latest_grip = msg.data
 
     def _write_csv_row(self):

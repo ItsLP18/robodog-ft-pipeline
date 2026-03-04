@@ -119,7 +119,7 @@ def generate_launch_description():
 
     # --- Rosbag2 Recording ---
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    bag_dir = os.path.expanduser(f'~/robodog_data/rosbags/session_{timestamp}')
+    bag_dir = os.path.expanduser(f'~/ft_sensor_data/rosbags/session_{timestamp}')
 
     rosbag_record = ExecuteProcess(
         cmd=[
